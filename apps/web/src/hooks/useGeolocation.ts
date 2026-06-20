@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useWeatherStore } from '@/stores/weatherStore';
+import { weatherApi } from '@/services/api';
 import type { Coordinates } from '@/types';
 
 export function useGeolocation() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const setCoordinates = useWeatherStore((s) => s.setCoordinates);
+  const setLocation = useWeatherStore((s) => s.setLocation);
 
   useEffect(() => {
     setStatus('loading');
@@ -16,12 +18,18 @@ export function useGeolocation() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const coords: Coordinates = {
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         };
         setCoordinates(coords);
+        try {
+          const location = await weatherApi.reverseGeocode(coords);
+          setLocation(location);
+        } catch (e) {
+          // 逆地理编码失败时保持默认城市
+        }
         setStatus('success');
       },
       (err) => {
@@ -30,7 +38,7 @@ export function useGeolocation() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, [setCoordinates]);
+  }, [setCoordinates, setLocation]);
 
   return { status, error };
 }

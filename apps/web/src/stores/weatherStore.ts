@@ -10,9 +10,11 @@ interface WeatherState {
 
 const DEFAULT_COORDS: Coordinates = { lat: 39.9042, lon: 116.4074 };
 
+const DEFAULT_LOCATION: GeocodeResult = { city: '北京', cityCode: '101010100', province: '北京' };
+
 export const useWeatherStore = create<WeatherState>((set) => ({
   coordinates: DEFAULT_COORDS,
-  location: null,
+  location: DEFAULT_LOCATION,
   setCoordinates: (coordinates) => set({ coordinates }),
   setLocation: (location) => set({ location }),
 }));
