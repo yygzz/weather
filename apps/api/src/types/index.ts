@@ -11,6 +11,7 @@ export interface CurrentWeather {
   sunrise: string;
   sunset: string;
   updateTime: string;
+  source: string;
 }
 
 export interface HourlyForecast {
@@ -71,6 +72,14 @@ export interface GeocodeResult {
   city: string;
   cityCode: string;
   province: string;
+}
+
+export interface CitySearchResult {
+  city: string;
+  cityCode: string;
+  province: string;
+  lat: number;
+  lon: number;
 }
 
 export interface ApiResponse<T> {

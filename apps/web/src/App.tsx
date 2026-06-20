@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PageBackground } from '@/components/ui/PageBackground';
+import { Header } from '@/components/ui/Header';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { CurrentDetails } from '@/components/sections/CurrentDetails';
 import { HourlyForecast } from '@/components/sections/HourlyForecast';
@@ -26,6 +27,7 @@ function WeatherApp() {
   return (
     <div className="min-h-screen pb-20">
       <PageBackground weatherType={current.data?.weatherIcon} />
+      <Header />
       <AlertModal alerts={alerts.data || []} />
       <main className="mx-auto max-w-7xl">
         <HeroSection data={current.data} city={location?.city} />

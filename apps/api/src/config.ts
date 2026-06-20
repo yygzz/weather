@@ -15,5 +15,6 @@ export const config = {
     lifestyle: parseInt(process.env.CACHE_TTL_LIFESTYLE || '3600', 10),
     alerts: parseInt(process.env.CACHE_TTL_ALERTS || '300', 10),
     radar: parseInt(process.env.CACHE_TTL_RADAR || '600', 10),
+    geocode: parseInt(process.env.CACHE_TTL_GEOCODE || '86400', 10),
   },
 };

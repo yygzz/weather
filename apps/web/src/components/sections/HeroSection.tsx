@@ -10,7 +10,7 @@ export function HeroSection({ data, city = '正在定位...' }: Props) {
   if (!data) return null;
 
   return (
-    <section className="flex min-h-[70vh] flex-col items-center justify-center px-6 pt-20 text-center">
+    <section className="flex min-h-[70vh] flex-col items-center justify-center px-6 pt-32 text-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -24,6 +24,7 @@ export function HeroSection({ data, city = '正在定位...' }: Props) {
         <p className="mt-1 text-base text-white/60">
           体感 {data.feelsLike}° · 更新于 {new Date(data.updateTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
         </p>
+        <p className="mt-3 text-xs text-white/40">数据来源于 {data.source}</p>
       </motion.div>
     </section>
   );

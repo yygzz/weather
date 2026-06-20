@@ -33,6 +33,7 @@ export async function fetchCurrentWeather(_cityCode: string): Promise<CurrentWea
     sunrise: '05:30',
     sunset: '19:15',
     updateTime: new Date().toISOString(),
+    source: '中国天气网（演示数据）',
   };
 }
 

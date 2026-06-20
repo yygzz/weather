@@ -3,6 +3,7 @@ import axios from 'axios';
 import type {
   ApiResponse,
   AirQuality,
+  CitySearchResult,
   Coordinates,
   CurrentWeather,
   DailyForecast,
@@ -27,6 +28,7 @@ async function get<T>(url: string, params?: Record<string, unknown>): Promise<T>
 }
 
 export const weatherApi = {
+  searchCity: (q: string) => get<CitySearchResult[]>('/geocode/search', { q } as Record<string, unknown>),
   reverseGeocode: (coords: Coordinates) => get<GeocodeResult>('/geocode/reverse', { ...coords } as Record<string, unknown>),
   current: (coords: Coordinates) => get<CurrentWeather>('/weather/current', { ...coords } as Record<string, unknown>),
   hourly: (coords: Coordinates) => get<HourlyForecast[]>('/weather/hourly', { ...coords } as Record<string, unknown>),

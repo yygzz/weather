@@ -9,6 +9,14 @@ export interface GeocodeResult {
   province: string;
 }
 
+export interface CitySearchResult {
+  city: string;
+  cityCode: string;
+  province: string;
+  lat: number;
+  lon: number;
+}
+
 export interface CurrentWeather {
   temperature: number;
   feelsLike: number;
@@ -22,6 +30,7 @@ export interface CurrentWeather {
   sunrise: string;
   sunset: string;
   updateTime: string;
+  source: string;
 }
 
 export interface HourlyForecast {
