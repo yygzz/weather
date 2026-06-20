@@ -25,7 +25,7 @@ export function useGeolocation() {
         };
         setCoordinates(coords);
         try {
-          const location = await weatherApi.reverseGeocode(coords);
+          const location = await weatherApi.reverseGeocode(coords.lat, coords.lon);
           setLocation(location);
         } catch (e) {
           // 逆地理编码失败时保持默认城市

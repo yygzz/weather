@@ -147,17 +147,116 @@ export async function fetchAirQuality(_cityCode: string): Promise<AirQuality> {
   };
 }
 
-export async function fetchLifestyleIndexes(_cityCode: string): Promise<LifestyleIndex[]> {
+export async function fetchLifestyleIndices(
+  cityCode: string,
+  injectedCurrent?: CurrentWeather
+): Promise<LifestyleIndex[]> {
+  let current: CurrentWeather;
+  if (injectedCurrent) {
+    current = injectedCurrent;
+  } else {
+    try {
+      current = await fetchCurrentWeather(cityCode);
+    } catch {
+      current = {
+        temperature: 22,
+        feelsLike: 25,
+        weatherText: '多云',
+        weatherIcon: 'cloudy',
+        windDirection: '东南风',
+        windSpeed: '2级',
+        humidity: 65,
+        visibility: '10km',
+        pressure: '1013hPa',
+        sunrise: '05:30',
+        sunset: '19:15',
+        updateTime: new Date().toISOString(),
+        source: '中国天气网（模拟 fallback）',
+      };
+    }
+  }
+
+  const { temperature, weatherText, weatherIcon, humidity, windSpeed } = current;
+  const rainy = /雨|雪|阴/.test(weatherText) || weatherIcon === 'rainy' || weatherIcon === 'snowy' || weatherIcon === 'cloudy';
+  const sunny = weatherIcon === 'sunny' || /晴/.test(weatherText);
+  const windy = parseInt(windSpeed, 10) >= 5;
+
+  // 基于当前天气生成合理的指数，后续可替换为真实数据源解析
   return [
-    { name: '穿衣', level: '舒适', description: '建议穿长袖衬衫、单裤等服装。' },
-    { name: '紫外线', level: '中等', description: '外出时涂抹防晒霜，戴遮阳帽。' },
-    { name: '洗车', level: '适宜', description: '天气较好，适合擦洗汽车。' },
-    { name: '晾晒', level: '适宜', description: '天气不错，抓紧时机让衣物晒晒太阳。' },
-    { name: '感冒', level: '少发', description: '各项气象条件适宜，发生感冒机率较低。' },
-    { name: '过敏', level: '较易发', description: '注意防护，避免接触过敏原。' },
-    { name: '运动', level: '适宜', description: '天气较好，推荐进行户外运动。' },
-    { name: '钓鱼', level: '适宜', description: '水温适宜，鱼儿活跃，适合垂钓。' },
+    {
+      name: '穿衣',
+      level: temperature <= 5 ? '寒冷' : temperature <= 15 ? '较冷' : temperature <= 24 ? '舒适' : temperature <= 30 ? '较热' : '炎热',
+      description:
+        temperature <= 5
+          ? '建议穿棉衣、羽绒服等冬季服装。'
+          : temperature <= 15
+            ? '建议穿风衣、夹克、薄毛衣等保暖服装。'
+            : temperature <= 24
+              ? '建议穿长袖衬衫、单裤等舒适服装。'
+              : temperature <= 30
+                ? '建议穿短袖、短裤等清凉服装。'
+                : '建议穿透气、散热的夏季服装，注意防暑。',
+    },
+    {
+      name: '紫外线',
+      level: sunny && !rainy ? (temperature >= 30 ? '强' : '中等') : '弱',
+      description: sunny && !rainy ? '外出时涂抹防晒霜，戴遮阳帽或太阳镜。' : '紫外线较弱，一般不需要特别防护。',
+    },
+    {
+      name: '洗车',
+      level: rainy ? '不宜' : '适宜',
+      description: rainy ? '未来可能有降水，不宜洗车。' : '天气较好，适合擦洗汽车。',
+    },
+    {
+      name: '晾晒',
+      level: rainy || humidity >= 85 ? '不宜' : '适宜',
+      description: rainy || humidity >= 85 ? '天气潮湿或有降水，不适宜晾晒。' : '天气不错，抓紧时机让衣物晒晒太阳。',
+    },
+    {
+      name: '感冒',
+      level: temperature <= 10 || temperature >= 32 || humidity >= 85 ? '易发' : '少发',
+      description:
+        temperature <= 10 || temperature >= 32 || humidity >= 85
+          ? '天气条件容易诱发感冒，请注意增减衣物。'
+          : '各项气象条件适宜，发生感冒机率较低。',
+    },
+    {
+      name: '过敏',
+      level: windy || humidity <= 35 ? '较易发' : '不易发',
+      description: windy || humidity <= 35 ? '空气干燥或风大，注意防护，避免接触过敏原。' : '气象条件不易诱发过敏。',
+    },
+    {
+      name: '运动',
+      level: rainy || windy || temperature >= 35 || temperature <= -5 ? '较不宜' : '适宜',
+      description:
+        rainy || windy || temperature >= 35 || temperature <= -5
+          ? '天气条件较差，建议选择室内运动。'
+          : '天气较好，推荐进行户外运动。',
+    },
+    {
+      name: '化妆',
+      level: rainy || humidity >= 80 ? '去油' : '保湿',
+      description:
+        rainy || humidity >= 80
+          ? '空气湿度大，建议使用控油化妆品。'
+          : '天气较干燥，建议使用保湿型化妆品，涂抹润唇膏。',
+    },
+    {
+      name: '钓鱼',
+      level: rainy || windy || temperature <= 5 || temperature >= 35 ? '较不宜' : '适宜',
+      description:
+        rainy || windy || temperature <= 5 || temperature >= 35
+          ? '天气条件不利于垂钓，建议改日。'
+          : '水温适宜，鱼儿活跃，适合垂钓。',
+    },
   ];
+}
+
+/**
+ * @deprecated 请使用 fetchLifestyleIndices，保留此别名以保持向后兼容。
+ */
+export async function fetchLifestyleIndexes(cityCode: string): Promise<LifestyleIndex[]> {
+  return fetchLifestyleIndices(cityCode);
 }
 
 export async function fetchWeatherAlerts(_cityCode: string): Promise<WeatherAlert[]> {

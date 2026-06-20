@@ -15,6 +15,8 @@ export async function reverseGeocode(lat: number, lon: number): Promise<GeocodeR
     city: nearest.city,
     cityCode: nearest.cityCode,
     province: nearest.province,
+    lat: nearest.lat,
+    lon: nearest.lon,
   };
 }
 

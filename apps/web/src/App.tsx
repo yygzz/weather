@@ -12,8 +12,10 @@ import { ProfessionalCharts } from '@/components/sections/ProfessionalCharts';
 import { AlertModal } from '@/components/ui/AlertModal';
 import { SavedCities } from '@/components/ui/SavedCities';
 import { RainAlert } from '@/components/ui/RainAlert';
+import { AlertSettings } from '@/components/ui/AlertSettings';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useWeatherData } from '@/hooks/useWeather';
+import { useWeatherAlerts } from '@/hooks/useWeatherAlerts';
 import { useWeatherStore } from '@/stores/weatherStore';
 
 const queryClient = new QueryClient();
@@ -23,6 +25,7 @@ function WeatherApp() {
   const coordinates = useWeatherStore((s) => s.coordinates);
   const location = useWeatherStore((s) => s.location);
   const { current, hourly, daily, air, lifestyle, alerts, radar } = useWeatherData();
+  const alertSettings = useWeatherAlerts(current.data, hourly.data);
 
   const isLoading = current.isLoading;
 
@@ -32,8 +35,12 @@ function WeatherApp() {
       <Header />
       <AlertModal alerts={alerts.data || []} />
       <main className="mx-auto max-w-7xl">
-        <div className="empty:hidden px-4 pt-20 pb-4 md:px-8">
-          <SavedCities /><RainAlert data={hourly.data} />
+        <div className="px-4 pt-20 pb-4 md:px-8">
+          <div className="flex items-start justify-between gap-3">
+            <SavedCities />
+            <AlertSettings {...alertSettings} />
+          </div>
+          <RainAlert data={hourly.data} />
         </div>
         <HeroSection data={current.data} city={location?.city} />
         {isLoading && (
@@ -48,7 +55,7 @@ function WeatherApp() {
         <ProfessionalCharts hourly={hourly.data} />
         {coordinates && <RadarMap data={radar.data} coordinates={coordinates} />}
         <AirQuality data={air.data} />
-        <LifestyleIndex data={lifestyle.data} />
+        <LifestyleIndex data={lifestyle.data} isLoading={lifestyle.isLoading} error={lifestyle.error} />
       </main>
     </div>
   );

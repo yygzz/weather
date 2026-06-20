@@ -7,10 +7,10 @@ import type {
   Coordinates,
   CurrentWeather,
   DailyForecast,
-  GeocodeResult,
   HourlyForecast,
   LifestyleIndex,
   RadarTileInfo,
+  ReverseGeocodeResult,
   WeatherAlert,
 } from '@/types';
 
@@ -27,14 +27,18 @@ async function get<T>(url: string, params?: Record<string, unknown>): Promise<T>
   return data.data;
 }
 
+export const getLifestyleIndices = (cityCode: string) =>
+  get<LifestyleIndex[]>(`/weather/lifestyle/${encodeURIComponent(cityCode)}`);
+
 export const weatherApi = {
   searchCity: (q: string) => get<CitySearchResult[]>('/geocode/search', { q } as Record<string, unknown>),
-  reverseGeocode: (coords: Coordinates) => get<GeocodeResult>('/geocode/reverse', { ...coords } as Record<string, unknown>),
+  reverseGeocode: (lat: number, lon: number) =>
+    get<ReverseGeocodeResult>('/geocode/reverse', { lat, lon } as Record<string, unknown>),
   current: (coords: Coordinates) => get<CurrentWeather>('/weather/current', { ...coords } as Record<string, unknown>),
   hourly: (coords: Coordinates) => get<HourlyForecast[]>('/weather/hourly', { ...coords } as Record<string, unknown>),
   daily: (coords: Coordinates) => get<DailyForecast[]>('/weather/daily', { ...coords } as Record<string, unknown>),
   air: (coords: Coordinates) => get<AirQuality>('/weather/air', { ...coords } as Record<string, unknown>),
-  lifestyle: (coords: Coordinates) => get<LifestyleIndex[]>('/weather/lifestyle', { ...coords } as Record<string, unknown>),
+  lifestyle: getLifestyleIndices,
   alerts: (coords: Coordinates) => get<WeatherAlert[]>('/weather/alerts', { ...coords } as Record<string, unknown>),
   radar: (coords: Coordinates, type: 'radar' | 'satellite' = 'radar') =>
     get<RadarTileInfo>('/radar/tiles', { ...coords, type }),

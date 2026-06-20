@@ -1,0 +1,12 @@
+- [x] 后端 `GET /api/geocode/reverse?lat=&lon=` 可正确返回最近城市
+- [x] 后端 `GET /api/weather/lifestyle/:cityCode` 可正确返回生活指数
+- [x] 前端 `MapPicker` 组件可显示 OpenStreetMap 底图
+- [x] 点击地图位置后成功切换城市并加载天气
+- [x] 「定位到我」按钮可将地图移动到当前位置
+- [x] 前端 `LifestyleIndex` 展示紫外线、洗车、运动、感冒、过敏、化妆、钓鱼等指数
+- [x] 前端 `AlertSettings` 可为收藏城市添加/删除阈值规则
+- [x] 规则保存到 localStorage 并在页面重载后恢复
+- [x] 天气数据满足规则时显示 toast 提醒
+- [x] 授权后能通过浏览器系统通知发送提醒
+- [x] 前端 `npx tsc --noEmit` 与 `npm run build` 通过
+- [x] 后端 `npx tsc --noEmit` 与测试通过

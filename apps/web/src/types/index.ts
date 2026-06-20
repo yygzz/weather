@@ -9,6 +9,8 @@ export interface GeocodeResult {
   province: string;
 }
 
+export type ReverseGeocodeResult = GeocodeResult;
+
 export interface CitySearchResult {
   city: string;
   cityCode: string;
@@ -23,6 +25,16 @@ export interface SavedCity {
   province: string;
   lat: number;
   lon: number;
+}
+
+export interface WeatherAlertRule {
+  id: string;
+  cityCode: string;
+  metric: 'temperature' | 'rainProbability' | 'windLevel';
+  operator: '>' | '<' | '>=' | '<=' | '==';
+  threshold: number;
+  enabled: boolean;
+  lastTriggeredAt?: number;
 }
 
 export interface CurrentWeather {
@@ -78,6 +90,7 @@ export interface LifestyleIndex {
   name: string;
   level: string;
   description: string;
+  icon?: string;
 }
 
 export interface WeatherAlert {

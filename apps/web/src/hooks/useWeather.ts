@@ -4,7 +4,9 @@ import { weatherApi } from '@/services/api';
 
 export function useWeatherData() {
   const coordinates = useWeatherStore((s) => s.coordinates);
+  const location = useWeatherStore((s) => s.location);
   const coords = coordinates || { lat: 39.9042, lon: 116.4074 };
+  const cityCode = location?.cityCode;
 
   const current = useQuery({
     queryKey: ['current', coords],
@@ -35,10 +37,10 @@ export function useWeatherData() {
   });
 
   const lifestyle = useQuery({
-    queryKey: ['lifestyle', coords],
-    queryFn: () => weatherApi.lifestyle(coords),
+    queryKey: ['lifestyle', cityCode],
+    queryFn: () => weatherApi.lifestyle(cityCode!),
     refetchInterval: 60 * 60 * 1000,
-    enabled: !!coordinates,
+    enabled: !!cityCode,
   });
 
   const alerts = useQuery({

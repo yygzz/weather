@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Map } from 'lucide-react';
 import { useWeatherStore } from '@/stores/weatherStore';
 import { useSavedCities } from '@/hooks/useSavedCities';
 import { CITIES, type CityItem } from '@/data/cities';
+import { MapPicker } from './MapPicker';
 
 export function CitySearch() {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const setCoordinates = useWeatherStore((s) => s.setCoordinates);
@@ -31,6 +33,7 @@ export function CitySearch() {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setIsMapOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -63,8 +66,21 @@ export function CitySearch() {
           placeholder={currentCity || '搜索城市…'}
           className="w-full bg-transparent text-sm text-white placeholder:text-white/50 outline-none"
         />
+        <button
+          type="button"
+          onClick={() => {
+            setIsMapOpen(true);
+            setIsOpen(false);
+          }}
+          className="rounded-lg p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
+          aria-label="地图选点"
+        >
+          <Map className="h-4 w-4 shrink-0" />
+        </button>
         <Search className="h-4 w-4 shrink-0 text-white/70" />
       </div>
+
+      <MapPicker open={isMapOpen} onClose={() => setIsMapOpen(false)} />
 
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-auto rounded-2xl border border-white/20 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-xl">

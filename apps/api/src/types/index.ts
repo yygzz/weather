@@ -72,6 +72,8 @@ export interface GeocodeResult {
   city: string;
   cityCode: string;
   province: string;
+  lat: number;
+  lon: number;
 }
 
 export interface CitySearchResult {
