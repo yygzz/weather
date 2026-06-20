@@ -1,6 +1,13 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { config } from '../config';
+import {
+  fetchQWeatherAirQuality,
+  fetchQWeatherLifestyleIndices,
+  fetchQWeatherWarnings,
+  type QWeatherIndexItem,
+  type QWeatherWarningItem,
+} from './qweatherService';
 import type {
   CurrentWeather,
   HourlyForecast,
@@ -46,7 +53,7 @@ function beijingNow(): Date {
   return new Date(str);
 }
 
-const fallbackCurrent: CurrentWeather = {
+export const fallbackCurrent: CurrentWeather = {
   temperature: 22,
   feelsLike: 25,
   weatherText: '多云',
@@ -390,7 +397,7 @@ export function parseAirQuality(html: string): AirQuality | null {
   };
 }
 
-const fallbackAir: AirQuality = {
+export const fallbackAir: AirQuality = {
   aqi: 85,
   level: '良',
   primaryPollutant: 'PM2.5',
@@ -404,17 +411,28 @@ const fallbackAir: AirQuality = {
 };
 
 export async function fetchAirQuality(cityCode: string): Promise<AirQuality> {
-  try {
-    const ts = Date.now();
-    const { data: html } = await weatherClient.get<string>(
-      `http://d1.weather.com.cn/aqi_all/${cityCode}.html?_${ts}`
-    );
-    const parsed = parseAirQuality(html);
-    if (parsed) return parsed;
-    throw new Error('air parse empty');
-  } catch (err) {
-    return { ...fallbackAir, source: 'fallback' };
+  const data = await fetchQWeatherAirQuality(cityCode);
+  const now = data?.now;
+  if (now) {
+    const aqi = parseInt(now.aqi || '0', 10);
+    const level = now.category || aqiLevelText(aqi);
+    const primary =
+      now.primary === 'NA' || !now.primary ? '无' : now.primary;
+    return {
+      aqi: isNaN(aqi) ? fallbackAir.aqi : aqi,
+      level,
+      primaryPollutant: primary,
+      pm25: parseFloat(now.pm2p5 || '0') || fallbackAir.pm25,
+      pm10: parseFloat(now.pm10 || '0') || fallbackAir.pm10,
+      o3: parseFloat(now.o3 || '0') || fallbackAir.o3,
+      no2: parseFloat(now.no2 || '0') || fallbackAir.no2,
+      so2: parseFloat(now.so2 || '0') || fallbackAir.so2,
+      co: parseFloat(now.co || '0') || fallbackAir.co,
+      advice: aqiAdvice(level),
+      source: 'QWeather',
+    };
   }
+  return { ...fallbackAir, source: 'fallback' };
 }
 
 export function parseLifestyleIndices(html: string): LifestyleIndex[] | null {
@@ -449,6 +467,37 @@ export function parseLifestyleIndices(html: string): LifestyleIndex[] | null {
   }
 
   return result.length > 0 ? result : null;
+}
+
+const QWEATHER_LIFESTYLE_TYPE_MAP: Record<string, string> = {
+  运动: '1',
+  洗车: '2',
+  穿衣: '3',
+  钓鱼: '4',
+  紫外线: '5',
+  旅游: '6',
+  过敏: '7',
+  化妆: '13',
+  感冒: '9',
+  晾晒: '14',
+};
+
+function mapQWeatherIndexName(typeCode?: string): string {
+  for (const [name, code] of Object.entries(QWEATHER_LIFESTYLE_TYPE_MAP)) {
+    if (code === typeCode) return name;
+  }
+  return '';
+}
+
+function mapQWeatherIndexToLifestyle(item: QWeatherIndexItem): LifestyleIndex | null {
+  const name = item.name || mapQWeatherIndexName(item.type);
+  if (!name) return null;
+  return {
+    name,
+    level: item.category || String(item.level || '').trim(),
+    description: item.text || '',
+    source: 'QWeather',
+  };
 }
 
 function generateLifestyleFallback(current: CurrentWeather): LifestyleIndex[] {
@@ -546,25 +595,33 @@ export async function fetchLifestyleIndices(
     }
   }
 
-  const requiredNames = ['紫外线', '洗车', '运动', '感冒', '过敏', '化妆', '钓鱼'];
+  const fallback = generateLifestyleFallback(current);
 
   try {
-    const ts = Date.now();
-    const { data: html } = await weatherClient.get<string>(
-      `http://d1.weather.com.cn/weather_index/${cityCode}.html?_${ts}`
-    );
-    const parsed = parseLifestyleIndices(html);
-    if (parsed && parsed.length > 0) {
-      const missing = requiredNames.filter((name) => !parsed.some((p) => p.name === name));
-      if (missing.length === 0) return parsed;
-      const fallbackItems = generateLifestyleFallback(current).filter((item) =>
-        missing.includes(item.name)
-      );
-      return [...parsed, ...fallbackItems];
+    const requiredNames = ['紫外线', '洗车', '运动', '感冒', '过敏', '化妆', '钓鱼'];
+    const types = requiredNames
+      .map((name) => QWEATHER_LIFESTYLE_TYPE_MAP[name])
+      .filter(Boolean);
+    const data = await fetchQWeatherLifestyleIndices(cityCode, types);
+    const daily = data?.daily || [];
+    if (daily.length === 0) {
+      throw new Error('lifestyle qweather empty');
     }
-    throw new Error('lifestyle parse empty');
-  } catch (err) {
-    return generateLifestyleFallback(current).map((item) => ({ ...item, source: 'fallback' }));
+
+    const parsed: LifestyleIndex[] = [];
+    for (const item of daily) {
+      const mapped = mapQWeatherIndexToLifestyle(item);
+      if (mapped) parsed.push(mapped);
+    }
+
+    const missing = requiredNames.filter((name) => !parsed.some((p) => p.name === name));
+    if (missing.length === 0) return parsed;
+    const fallbackItems = fallback
+      .filter((item) => missing.includes(item.name))
+      .map((item) => ({ ...item, source: 'fallback' as const }));
+    return [...parsed, ...fallbackItems];
+  } catch {
+    return fallback.map((item) => ({ ...item, source: 'fallback' as const }));
   }
 }
 
@@ -621,16 +678,47 @@ export function parseWeatherAlerts(html: string): WeatherAlert[] | null {
   });
 }
 
-export async function fetchWeatherAlerts(cityCode: string): Promise<WeatherAlert[]> {
-  try {
-    const ts = Date.now();
-    const { data: html } = await weatherClient.get<string>(
-      `http://d1.weather.com.cn/weather_index/${cityCode}.html?_${ts}`
-    );
-    return parseWeatherAlerts(html) || [];
-  } catch (err) {
-    return [];
+function mapQWeatherWarningLevel(levelRaw?: string): WeatherAlert['level'] {
+  if (!levelRaw) return 'blue';
+  const cleaned = String(levelRaw).replace(/色$/, '').toLowerCase();
+  const map: Record<string, WeatherAlert['level']> = {
+    blue: 'blue',
+    yellow: 'yellow',
+    orange: 'orange',
+    red: 'red',
+    蓝: 'blue',
+    黄: 'yellow',
+    橙: 'orange',
+    红: 'red',
+  };
+  let level = map[cleaned];
+  if (!level) {
+    const numeric = parseInt(cleaned, 10);
+    if (numeric === 1) level = 'blue';
+    if (numeric === 2) level = 'yellow';
+    if (numeric === 3) level = 'orange';
+    if (numeric === 4) level = 'red';
   }
+  return level || 'blue';
+}
+
+function mapQWeatherWarning(item: QWeatherWarningItem): WeatherAlert {
+  return {
+    title: item.title || `${item.typeName || item.type || ''}预警`,
+    level: mapQWeatherWarningLevel(item.level),
+    type: item.typeName || item.type || '',
+    content: item.text || item.content || '',
+    publishTime: item.pubTime || new Date().toISOString(),
+    defenseGuide: [],
+    source: 'QWeather',
+  };
+}
+
+export async function fetchWeatherAlerts(cityCode: string): Promise<WeatherAlert[]> {
+  const data = await fetchQWeatherWarnings(cityCode);
+  const warnings = data?.warning || [];
+  if (warnings.length === 0) return [];
+  return warnings.map(mapQWeatherWarning);
 }
 
 export function parseRadarTiles(html: string): RadarTileInfo | null {

@@ -64,6 +64,7 @@ export interface WeatherAlert {
   content: string;
   publishTime: string;
   defenseGuide: string[];
+  source?: string;
 }
 
 export interface RadarTileInfo {

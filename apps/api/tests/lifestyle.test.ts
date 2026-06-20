@@ -2,6 +2,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { cache } from '../src/services/cache';
 import { fetchLifestyleIndices, parseLifestyleIndices } from '../src/services/weatherScraper';
+import * as qweatherService from '../src/services/qweatherService';
 import type { CurrentWeather, LifestyleIndex } from '../src/types';
 
 const app = createApp();
@@ -191,5 +192,66 @@ describe('parseLifestyleIndices', () => {
     const html = '<script>var dataZS = {};</script>';
     const result = actualParseLifestyleIndices(html);
     expect(result).toBeNull();
+  });
+});
+
+describe('fetchLifestyleIndices with QWeather', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('parses QWeather indices response and marks source', async () => {
+    const fixture = {
+      code: '200',
+      daily: [
+        { date: '2026-06-20', type: '5', name: '紫外线', level: '3', category: '中等', text: '外出时涂抹防晒霜。' },
+        { date: '2026-06-20', type: '2', name: '洗车', level: '1', category: '适宜', text: '天气较好，适合洗车。' },
+        { date: '2026-06-20', type: '1', name: '运动', level: '1', category: '适宜', text: '推荐户外运动。' },
+        { date: '2026-06-20', type: '9', name: '感冒', level: '2', category: '少发', text: '感冒机率较低。' },
+        { date: '2026-06-20', type: '7', name: '过敏', level: '1', category: '不易发', text: '不易诱发过敏。' },
+        { date: '2026-06-20', type: '13', name: '化妆', level: '2', category: '保湿', text: '建议使用保湿化妆品。' },
+        { date: '2026-06-20', type: '4', name: '钓鱼', level: '1', category: '适宜', text: '适合垂钓。' },
+      ],
+    };
+    jest.spyOn(qweatherService, 'fetchQWeatherLifestyleIndices').mockResolvedValue(fixture);
+
+    const indices = await actualFetchLifestyleIndices('101010100', mockWeather);
+    expect(indices.every((item) => item.source === 'QWeather')).toBe(true);
+
+    const uv = indices.find((item) => item.name === '紫外线');
+    expect(uv).toBeDefined();
+    expect(uv!.level).toBe('中等');
+    expect(uv!.description).toContain('防晒霜');
+
+    const sport = indices.find((item) => item.name === '运动');
+    expect(sport).toBeDefined();
+    expect(sport!.level).toBe('适宜');
+  });
+
+  it('falls back to weather-based indices when QWeather returns null', async () => {
+    jest.spyOn(qweatherService, 'fetchQWeatherLifestyleIndices').mockResolvedValue(null);
+
+    const indices = await actualFetchLifestyleIndices('101010100', mockWeather);
+    expect(indices.every((item) => item.source === 'fallback')).toBe(true);
+    expect(indices.map((item) => item.name)).toContain('紫外线');
+    expect(indices.map((item) => item.name)).toContain('洗车');
+  });
+
+  it('fills missing required indices from fallback when QWeather response is incomplete', async () => {
+    const fixture = {
+      code: '200',
+      daily: [
+        { date: '2026-06-20', type: '5', name: '紫外线', level: '3', category: '中等', text: '外出时涂抹防晒霜。' },
+        { date: '2026-06-20', type: '2', name: '洗车', level: '1', category: '适宜', text: '天气较好，适合洗车。' },
+      ],
+    };
+    jest.spyOn(qweatherService, 'fetchQWeatherLifestyleIndices').mockResolvedValue(fixture);
+
+    const indices = await actualFetchLifestyleIndices('101010100', mockWeather);
+    const qweatherItems = indices.filter((item) => item.source === 'QWeather');
+    const fallbackItems = indices.filter((item) => item.source === 'fallback');
+    expect(qweatherItems.length).toBe(2);
+    expect(fallbackItems.length).toBeGreaterThan(0);
+    expect(fallbackItems.map((item) => item.name)).toContain('运动');
   });
 });

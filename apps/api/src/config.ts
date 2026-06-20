@@ -7,6 +7,7 @@ export const config = {
   corsOrigin: process.env.CORS_ORIGIN || true,
   nodeEnv: process.env.NODE_ENV || 'development',
   weatherBaseUrl: process.env.WEATHER_BASE_URL || 'https://weather.com.cn',
+  qweatherKey: process.env.QWEATHER_KEY || '',
   cacheTtl: {
     current: parseInt(process.env.CACHE_TTL_CURRENT || '300', 10),
     hourly: parseInt(process.env.CACHE_TTL_HOURLY || '1800', 10),

@@ -2,6 +2,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { cache } from '../src/services/cache';
 import * as weatherScraper from '../src/services/weatherScraper';
+import * as qweatherService from '../src/services/qweatherService';
 import type { CurrentWeather } from '../src/types';
 
 const app = createApp();
@@ -242,5 +243,93 @@ describe('parseRadarTiles', () => {
   it('returns null when no radar info', () => {
     const result = weatherScraper.parseRadarTiles('<html>empty</html>');
     expect(result).toBeNull();
+  });
+});
+
+describe('fetchAirQuality with QWeather', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('parses QWeather air quality response and marks source', async () => {
+    const fixture = {
+      code: '200',
+      now: {
+        aqi: '45',
+        level: '1',
+        category: '优',
+        primary: 'NA',
+        pm10: '35',
+        pm2p5: '20',
+        no2: '25',
+        so2: '8',
+        co: '0.6',
+        o3: '70',
+      },
+    };
+    jest.spyOn(qweatherService, 'fetchQWeatherAirQuality').mockResolvedValue(fixture);
+
+    const result = await weatherScraper.fetchAirQuality('101010100');
+    expect(result.source).toBe('QWeather');
+    expect(result.aqi).toBe(45);
+    expect(result.level).toBe('优');
+    expect(result.primaryPollutant).toBe('无');
+    expect(result.pm25).toBe(20);
+    expect(result.pm10).toBe(35);
+    expect(result.o3).toBe(70);
+    expect(result.no2).toBe(25);
+    expect(result.so2).toBe(8);
+    expect(result.co).toBe(0.6);
+    expect(result.advice).toBeDefined();
+  });
+
+  it('falls back when QWeather returns null', async () => {
+    jest.spyOn(qweatherService, 'fetchQWeatherAirQuality').mockResolvedValue(null);
+
+    const result = await weatherScraper.fetchAirQuality('101010100');
+    expect(result.source).toBe('fallback');
+    expect(result).toEqual(expect.objectContaining(weatherScraper.fallbackAir));
+  });
+});
+
+describe('fetchWeatherAlerts with QWeather', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('parses QWeather warnings and marks source', async () => {
+    const fixture = {
+      code: '200',
+      warning: [
+        {
+          id: '101010100202606200101',
+          title: '北京市暴雨蓝色预警',
+          level: '蓝色',
+          type: '11B01',
+          typeName: '暴雨',
+          content: '预计未来6小时有暴雨',
+          text: '预计未来6小时有暴雨',
+          pubTime: '2026-06-20T10:00:00+08:00',
+          status: 'active',
+        },
+      ],
+    };
+    jest.spyOn(qweatherService, 'fetchQWeatherWarnings').mockResolvedValue(fixture);
+
+    const result = await weatherScraper.fetchWeatherAlerts('101010100');
+    expect(result.length).toBe(1);
+    expect(result[0].title).toBe('北京市暴雨蓝色预警');
+    expect(result[0].level).toBe('blue');
+    expect(result[0].type).toBe('暴雨');
+    expect(result[0].content).toBe('预计未来6小时有暴雨');
+    expect(result[0].publishTime).toBe('2026-06-20T10:00:00+08:00');
+    expect(result[0].source).toBe('QWeather');
+  });
+
+  it('returns empty array when QWeather returns null or no warnings', async () => {
+    jest.spyOn(qweatherService, 'fetchQWeatherWarnings').mockResolvedValue(null);
+
+    const result = await weatherScraper.fetchWeatherAlerts('101010100');
+    expect(result).toEqual([]);
   });
 });

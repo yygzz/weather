@@ -1,10 +1,13 @@
 - [x] `fetchHourlyForecast` 从中国天气网解析真实逐小时预报
 - [x] `fetchDailyForecast` 从中国天气网解析真实逐天预报
-- [x] `fetchAirQuality` 从中国天气网解析真实空气质量数据
-- [x] `fetchLifestyleIndices` 从中国天气网解析真实生活指数
-- [x] `fetchWeatherAlerts` 从中国天气网解析真实天气预警
+- [x] `fetchAirQuality` 从 QWeather 解析真实空气质量数据
+- [x] `fetchLifestyleIndices` 从 QWeather 解析真实生活指数
+- [x] `fetchWeatherAlerts` 从 QWeather 解析真实天气预警
 - [x] `fetchRadarTiles` 从中国天气网解析真实雷达图信息
 - [x] 所有解析失败时保留合理的 fallback 数据
+- [ ] `QWEATHER_KEY` 环境变量在 `config.ts` 与 `.env.example` 中已配置
+- [ ] QWeather 通用请求封装（含城市编码转换、错误处理）已实现
+- [ ] 空气质量、生活指数、预警接口单元测试覆盖 QWeather 响应与 fallback
 - [x] 后端 `npx tsc --noEmit` 通过
 - [x] 后端 `npm test` 全部通过
-- [x] 手动验证各接口返回结构正确
+- [ ] 真实环境验证空气质量、生活指数、预警接口返回非 fallback 数据（当前环境未配置 `QWEATHER_KEY`，无法验证真实数据，仅验证 fallback 降级）

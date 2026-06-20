@@ -35,6 +35,19 @@
   - [x] SubTask 7.2: 后端 `npm test` 全部通过
   - [x] SubTask 7.3: 手动验证各接口返回真实结构数据
 
+- [x] Task 8: 接入 QWeather 替换失效数据源
+  - [x] SubTask 8.1: 在 `config.ts` 与 `.env.example` 新增 `QWEATHER_KEY` 配置
+  - [x] SubTask 8.2: 新增 `qweatherService.ts` 封装 QWeather 通用请求（含 key、城市编码转换、错误处理）
+  - [x] SubTask 8.3: 重写 `fetchAirQuality` 调用 QWeather `/air/now?location={location}`
+  - [x] SubTask 8.4: 重写 `fetchLifestyleIndices` 调用 QWeather `/indices/1d?location={location}&type={type}`
+  - [x] SubTask 8.5: 重写 `fetchWeatherAlerts` 调用 QWeather `/warning/now?location={location}`
+  - [x] SubTask 8.6: 更新 `weather.test.ts` / `lifestyle.test.ts` 中的相关测试（使用 QWeather fixture 或 fallback 断言）
+
+- [x] Task 9: 重新验证
+  - [x] SubTask 9.1: 后端 `npx tsc --noEmit` 通过
+  - [x] SubTask 9.2: 后端 `npm test` 全部通过
+  - [ ] SubTask 9.3: 真实环境验证空气质量、生活指数、预警接口（需配置 `QWEATHER_KEY`，当前环境未配置，未完成）
+
 # Task Dependencies
 - Task 2 依赖 无
 - Task 3 依赖 无
@@ -42,3 +55,5 @@
 - Task 5 依赖 无
 - Task 6 依赖 无
 - Task 7 依赖 Task 1-6
+- Task 8 依赖 无
+- Task 9 依赖 Task 8
