@@ -1,11 +1,20 @@
 import { GeocodeResult, CitySearchResult } from '../types';
 
-// 简化实现：坐标转城市先使用默认城市，后续可接入高德/腾讯等 GEO API
-export async function reverseGeocode(_lat: number, _lon: number): Promise<GeocodeResult> {
+export async function reverseGeocode(lat: number, lon: number): Promise<GeocodeResult> {
+  // 在本地城市表中找最近的城市作为坐标反查结果
+  let nearest = CITIES[0];
+  let minDist = Infinity;
+  for (const city of CITIES) {
+    const dist = Math.sqrt((city.lat - lat) ** 2 + (city.lon - lon) ** 2);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = city;
+    }
+  }
   return {
-    city: '北京',
-    cityCode: '101010100',
-    province: '北京',
+    city: nearest.city,
+    cityCode: nearest.cityCode,
+    province: nearest.province,
   };
 }
 

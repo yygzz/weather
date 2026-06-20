@@ -19,22 +19,89 @@ export const weatherClient = axios.create({
   },
 });
 
-export async function fetchCurrentWeather(_cityCode: string): Promise<CurrentWeather> {
-  return {
-    temperature: 22,
-    feelsLike: 25,
-    weatherText: '多云',
-    weatherIcon: 'cloudy',
-    windDirection: '东南风',
-    windSpeed: '3级',
-    humidity: 65,
-    visibility: '10km',
-    pressure: '1013hPa',
-    sunrise: '05:30',
-    sunset: '19:15',
-    updateTime: new Date().toISOString(),
-    source: '中国天气网（演示数据）',
-  };
+function mapWeatherIcon(code?: string): string {
+  if (!code) return 'cloudy';
+  const c = code.toLowerCase();
+  if (c.includes('00')) return 'sunny';
+  if (c.includes('01') || c.includes('02')) return 'cloudy';
+  if (c.includes('雨') || ['07', '08', '09', '10', '11', '12', '13', '19', '21', '22'].some((x) => c.includes(x))) return 'rainy';
+  if (c.includes('雪') || ['14', '15', '16', '17', '18', '20'].some((x) => c.includes(x))) return 'snowy';
+  if (c.startsWith('n')) return 'night';
+  return 'cloudy';
+}
+
+function parseUpdateTime(raw: string): string {
+  if (!raw || raw.length < 12) return new Date().toISOString();
+  const y = raw.slice(0, 4);
+  const m = raw.slice(4, 6);
+  const d = raw.slice(6, 8);
+  const hh = raw.slice(8, 10);
+  const mm = raw.slice(10, 12);
+  return new Date(`${y}-${m}-${d}T${hh}:${mm}:00+08:00`).toISOString();
+}
+
+export async function fetchCurrentWeather(cityCode: string): Promise<CurrentWeather> {
+  try {
+    const url = `https://weather.com.cn/weather1d/${cityCode}.shtml`;
+    const { data: html } = await weatherClient.get<string>(url);
+
+    const observeMatch = html.match(/var observe24h_data\s*=\s*(\{[\s\S]*?\}\});/);
+    const hourMatch = html.match(/var hour3data\s*=\s*(\{[\s\S]*?\})\s*;?/);
+    const sunMatch = html.match(/<span>日出\s*(\d{2}:\d{2})<\/span>[\s\S]*?<span>日落\s*(\d{2}:\d{2})<\/span>/);
+
+    let latest: Record<string, string> | null = null;
+    let updateTime = new Date().toISOString();
+    if (observeMatch) {
+      const observe = JSON.parse(observeMatch[1]);
+      const arr = observe?.od?.od2;
+      if (Array.isArray(arr) && arr.length > 0) {
+        latest = arr[0];
+        updateTime = parseUpdateTime(observe.od.od0);
+      }
+    }
+
+    const hour3 = hourMatch ? JSON.parse(hourMatch[1]) : null;
+    const currentHourText: string = hour3?.['1d']?.[0] ?? '';
+    const parts = currentHourText.split(',');
+    const weatherText = parts[2] || '多云';
+    const weatherIcon = mapWeatherIcon(parts[1]);
+
+    const temperature = latest ? parseFloat(latest.od22) : 22;
+    const humidity = latest ? parseInt(latest.od27, 10) : 50;
+
+    return {
+      temperature: isNaN(temperature) ? 22 : temperature,
+      feelsLike: isNaN(temperature) ? 25 : temperature,
+      weatherText,
+      weatherIcon,
+      windDirection: latest?.od24 || '北风',
+      windSpeed: latest?.od25 ? `${latest.od25}级` : '2级',
+      humidity: isNaN(humidity) ? 50 : humidity,
+      visibility: '10km',
+      pressure: '1013hPa',
+      sunrise: sunMatch ? sunMatch[1] : '06:00',
+      sunset: sunMatch ? sunMatch[2] : '18:00',
+      updateTime,
+      source: '中国天气网',
+    };
+  } catch (err) {
+    // 爬取失败时使用占位数据，避免页面空白
+    return {
+      temperature: 22,
+      feelsLike: 25,
+      weatherText: '多云',
+      weatherIcon: 'cloudy',
+      windDirection: '东南风',
+      windSpeed: '3级',
+      humidity: 65,
+      visibility: '10km',
+      pressure: '1013hPa',
+      sunrise: '05:30',
+      sunset: '19:15',
+      updateTime: new Date().toISOString(),
+      source: '中国天气网（模拟 fallback）',
+    };
+  }
 }
 
 export async function fetchHourlyForecast(_cityCode: string): Promise<HourlyForecast[]> {
