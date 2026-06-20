@@ -1,50 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
-import { Search, MapPin, Loader2 } from 'lucide-react';
-import { weatherApi } from '@/services/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, MapPin } from 'lucide-react';
 import { useWeatherStore } from '@/stores/weatherStore';
-import type { CitySearchResult } from '@/types';
+import { CITIES, type CityItem } from '@/data/cities';
 
 export function CitySearch() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<CitySearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const skipNextSearchRef = useRef(false);
 
   const setCoordinates = useWeatherStore((s) => s.setCoordinates);
   const setLocation = useWeatherStore((s) => s.setLocation);
   const currentCity = useWeatherStore((s) => s.location?.city);
 
-  useEffect(() => {
+  const results = useMemo(() => {
     const trimmed = query.trim();
-    if (!trimmed) {
-      setResults([]);
-      setIsOpen(false);
-      return;
-    }
-
-    if (skipNextSearchRef.current) {
-      skipNextSearchRef.current = false;
-      return;
-    }
-
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      weatherApi
-        .searchCity(trimmed)
-        .then((cities) => {
-          setResults(cities);
-          setIsOpen(true);
-        })
-        .catch(() => {
-          setResults([]);
-          setIsOpen(false);
-        })
-        .finally(() => setIsLoading(false));
-    }, 200);
-
-    return () => clearTimeout(timer);
+    if (!trimmed) return [];
+    const lower = trimmed.toLowerCase();
+    return CITIES.filter(
+      (c) =>
+        c.city.toLowerCase().includes(lower) ||
+        c.province.toLowerCase().includes(lower) ||
+        c.cityCode.includes(trimmed)
+    ).slice(0, 8);
   }, [query]);
 
   useEffect(() => {
@@ -57,16 +34,19 @@ export function CitySearch() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (city: CitySearchResult) => {
+  const handleSelect = (city: CityItem) => {
     setCoordinates({ lat: city.lat, lon: city.lon });
     setLocation({ city: city.city, cityCode: city.cityCode, province: city.province });
-    skipNextSearchRef.current = true;
     setQuery(city.city);
-    setResults([]);
     setIsOpen(false);
   };
 
-  const showNoResults = query.trim() && !isLoading && results.length === 0 && isOpen;
+  const handleInputChange = (value: string) => {
+    setQuery(value);
+    setIsOpen(true);
+  };
+
+  const showNoResults = query.trim() && results.length === 0;
 
   return (
     <div ref={containerRef} className="relative w-full max-w-[240px]">
@@ -75,20 +55,16 @@ export function CitySearch() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => (results.length > 0 || showNoResults) && setIsOpen(true)}
           placeholder={currentCity || '搜索城市…'}
           className="w-full bg-transparent text-sm text-white placeholder:text-white/50 outline-none"
         />
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-white/70" />
-        ) : (
-          <Search className="h-4 w-4 shrink-0 text-white/70" />
-        )}
+        <Search className="h-4 w-4 shrink-0 text-white/70" />
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-auto rounded-2xl border border-white/20 bg-slate-950/80 p-2 shadow-2xl backdrop-blur-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-auto rounded-2xl border border-white/20 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-xl">
           {results.length > 0 ? (
             results.map((city) => (
               <button
