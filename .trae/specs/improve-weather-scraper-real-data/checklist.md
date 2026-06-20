@@ -10,4 +10,4 @@
 - [ ] 空气质量、生活指数、预警接口单元测试覆盖 QWeather 响应与 fallback
 - [x] 后端 `npx tsc --noEmit` 通过
 - [x] 后端 `npm test` 全部通过
-- [ ] 真实环境验证空气质量、生活指数、预警接口返回非 fallback 数据（当前环境未配置 `QWEATHER_KEY`，无法验证真实数据，仅验证 fallback 降级）
+- [ ] 真实环境验证空气质量、生活指数、预警接口返回非 fallback 数据（`QWEATHER_KEY` 已配置，但 QWeather 返回 403 Invalid Host，空气质量与生活指数降级为 fallback；预警返回空数组，无 fallback）
