@@ -1,0 +1,37 @@
+<h2>Apple Liquid Glass 视觉方向</h2>
+<p class="subtitle">哪种玻璃质感更接近你想要的感觉？点击选择最符合你预期的一版。</p>
+
+<div class="cards">
+  <div class="card" data-choice="dark-dramatic" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%); display: flex; flex-direction: column; gap: 12px; padding: 24px; align-items: center; justify-content: center;">
+      <div style="width: 180px; height: 100px; border-radius: 24px; background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85); font-weight: 500;">22°C 晴</div>
+      <div style="width: 180px; height: 48px; border-radius: 16px; background: rgba(100,180,255,0.15); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12);"></div>
+    </div>
+    <div class="card-body">
+      <h3>A. 深邃影院</h3>
+      <p>深色渐变背景，高对比度，玻璃卡片带明显高光边缘和强投影。类似 tvOS / Vision Pro 暗色空间。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="light-airy" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(180deg, #e8f4f8 0%, #d4e8f0 100%); display: flex; flex-direction: column; gap: 12px; padding: 24px; align-items: center; justify-content: center;">
+      <div style="width: 180px; height: 100px; border-radius: 24px; background: rgba(255,255,255,0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 24px rgba(0,60,100,0.08), inset 0 1px 0 rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; color: #1a3a4a; font-weight: 500;">22°C 晴</div>
+      <div style="width: 180px; height: 48px; border-radius: 16px; background: rgba(255,255,255,0.35); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.5);"></div>
+    </div>
+    <div class="card-body">
+      <h3>B. 清透日光</h3>
+      <p>明亮柔和背景，低饱和蓝绿色调，玻璃更薄更透，整体轻盈干净。类似 iOS 18 天气新风格。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="dynamic-liquid" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #7e22ce 50%, #ea580c 75%, #f59e0b 100%); background-size: 400% 400%; display: flex; flex-direction: column; gap: 12px; padding: 24px; align-items: center; justify-content: center;">
+      <div style="width: 180px; height: 100px; border-radius: 24px; background: rgba(255,255,255,0.1); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.9); font-weight: 500;">22°C 晴</div>
+      <div style="width: 180px; height: 48px; border-radius: 16px; background: rgba(255,255,255,0.08); backdrop-filter: blur(20px) saturate(150%); border: 1px solid rgba(255,255,255,0.15);"></div>
+    </div>
+    <div class="card-body">
+      <h3>C. 动态流体</h3>
+      <p>背景是缓慢流动的极光/晚霞渐变，玻璃带色彩染色（saturate），动画最华丽，视觉冲击力最强。</p>
+    </div>
+  </div>
+</div>
