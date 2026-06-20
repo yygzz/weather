@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { cache } from '../src/services/cache';
-import { fetchLifestyleIndices } from '../src/services/weatherScraper';
+import { fetchLifestyleIndices, parseLifestyleIndices } from '../src/services/weatherScraper';
 import type { CurrentWeather, LifestyleIndex } from '../src/types';
 
 const app = createApp();
@@ -46,6 +46,7 @@ jest.mock('../src/services/weatherScraper', () => {
 
 const mockedFetchLifestyleIndices = jest.mocked(fetchLifestyleIndices);
 const actualFetchLifestyleIndices = jest.requireActual('../src/services/weatherScraper').fetchLifestyleIndices as typeof fetchLifestyleIndices;
+const actualParseLifestyleIndices = jest.requireActual('../src/services/weatherScraper').parseLifestyleIndices as typeof parseLifestyleIndices;
 
 describe('Lifestyle API', () => {
   beforeEach(() => {
@@ -142,5 +143,53 @@ describe('fetchLifestyleIndices logic', () => {
     const cold = indices.find((item) => item.name === '感冒');
     expect(cold).toBeDefined();
     expect(cold!.level).toBe('易发');
+  });
+});
+
+describe('parseLifestyleIndices', () => {
+  it('parses dataZS payload into lifestyle indices', () => {
+    const html = `
+      <script>
+      var dataZS = {
+        "zs": {
+          "uv_name": "紫外线",
+          "uv_hint": "强",
+          "uv_des_s": "外出涂抹防晒霜，戴遮阳帽或太阳镜。",
+          "xc_name": "洗车",
+          "xc_hint": "适宜",
+          "xc_des_s": "天气较好，适合擦洗汽车。",
+          "yd_name": "运动",
+          "yd_hint": "适宜",
+          "yd_des_s": "天气较好，推荐进行户外运动。",
+          "gm_name": "感冒",
+          "gm_hint": "少发",
+          "gm_des_s": "各项气象条件适宜，发生感冒机率较低。"
+        }
+      };
+      </script>
+    `;
+    const result = actualParseLifestyleIndices(html);
+    expect(result).not.toBeNull();
+    expect(result!.length).toBeGreaterThanOrEqual(4);
+
+    const uv = result!.find((item) => item.name === '紫外线');
+    expect(uv).toBeDefined();
+    expect(uv!.level).toBe('强');
+    expect(uv!.description).toContain('防晒霜');
+
+    const carWash = result!.find((item) => item.name === '洗车');
+    expect(carWash).toBeDefined();
+    expect(carWash!.level).toBe('适宜');
+  });
+
+  it('returns null when dataZS is missing', () => {
+    const result = actualParseLifestyleIndices('<html>empty</html>');
+    expect(result).toBeNull();
+  });
+
+  it('returns null when dataZS has no zs object', () => {
+    const html = '<script>var dataZS = {};</script>';
+    const result = actualParseLifestyleIndices(html);
+    expect(result).toBeNull();
   });
 });

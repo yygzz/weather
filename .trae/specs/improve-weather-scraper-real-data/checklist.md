@@ -1,0 +1,10 @@
+- [x] `fetchHourlyForecast` 从中国天气网解析真实逐小时预报
+- [x] `fetchDailyForecast` 从中国天气网解析真实逐天预报
+- [x] `fetchAirQuality` 从中国天气网解析真实空气质量数据
+- [x] `fetchLifestyleIndices` 从中国天气网解析真实生活指数
+- [x] `fetchWeatherAlerts` 从中国天气网解析真实天气预警
+- [x] `fetchRadarTiles` 从中国天气网解析真实雷达图信息
+- [x] 所有解析失败时保留合理的 fallback 数据
+- [x] 后端 `npx tsc --noEmit` 通过
+- [x] 后端 `npm test` 全部通过
+- [x] 手动验证各接口返回结构正确

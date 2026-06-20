@@ -21,6 +21,7 @@ export interface HourlyForecast {
   windDirection: string;
   windSpeed: string;
   weatherText: string;
+  source?: string;
 }
 
 export interface DailyForecast {
@@ -32,6 +33,7 @@ export interface DailyForecast {
   windDirection: string;
   windSpeed: string;
   precipitationProbability: number;
+  source?: string;
 }
 
 export interface AirQuality {
@@ -45,12 +47,14 @@ export interface AirQuality {
   so2: number;
   co: number;
   advice: string;
+  source?: string;
 }
 
 export interface LifestyleIndex {
   name: string;
   level: string;
   description: string;
+  source?: string;
 }
 
 export interface WeatherAlert {
@@ -66,6 +70,7 @@ export interface RadarTileInfo {
   type: 'radar' | 'satellite';
   times: string[];
   baseUrl: string;
+  source?: string;
 }
 
 export interface GeocodeResult {
