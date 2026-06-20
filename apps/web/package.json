@@ -14,6 +14,7 @@
     "@tanstack/react-query": "^5.40.0",
     "axios": "^1.7.2",
     "framer-motion": "^11.2.6",
+    "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.379.0",
     "react": "^18.3.1",

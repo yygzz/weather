@@ -27,6 +27,18 @@ class CacheService {
     }
   }
 
+  getByKey<T>(key: string): T | undefined {
+    return this.cache.get<T>(key);
+  }
+
+  setByKey<T>(key: string, value: T, ttl?: number): void {
+    if (ttl !== undefined) {
+      this.cache.set(key, value, ttl);
+    } else {
+      this.cache.set(key, value, config.cacheTtl.current);
+    }
+  }
+
   flush(): void {
     this.cache.flushAll();
   }

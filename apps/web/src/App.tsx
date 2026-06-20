@@ -10,6 +10,8 @@ import { LifestyleIndex } from '@/components/sections/LifestyleIndex';
 import { RadarMap } from '@/components/sections/RadarMap';
 import { ProfessionalCharts } from '@/components/sections/ProfessionalCharts';
 import { AlertModal } from '@/components/ui/AlertModal';
+import { SavedCities } from '@/components/ui/SavedCities';
+import { RainAlert } from '@/components/ui/RainAlert';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useWeatherData } from '@/hooks/useWeather';
 import { useWeatherStore } from '@/stores/weatherStore';
@@ -30,6 +32,9 @@ function WeatherApp() {
       <Header />
       <AlertModal alerts={alerts.data || []} />
       <main className="mx-auto max-w-7xl">
+        <div className="empty:hidden px-4 pt-20 pb-4 md:px-8">
+          <SavedCities /><RainAlert data={hourly.data} />
+        </div>
         <HeroSection data={current.data} city={location?.city} />
         {isLoading && (
           <div className="py-20 text-center text-white/60">

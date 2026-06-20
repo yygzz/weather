@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import { cache } from '../services/cache';
+import { config } from '../config';
 import {
   fetchCurrentWeather,
   fetchHourlyForecast,
@@ -58,5 +59,26 @@ router.get('/daily', handleWeatherRoute(fetchDailyForecast, 'daily'));
 router.get('/air', handleWeatherRoute(fetchAirQuality, 'air'));
 router.get('/lifestyle', handleWeatherRoute(fetchLifestyleIndexes, 'lifestyle'));
 router.get('/alerts', handleWeatherRoute(fetchWeatherAlerts, 'alerts'));
+
+router.get('/current/:cityCode', async (req, res, next) => {
+  try {
+    const { cityCode } = req.params;
+    if (!cityCode) {
+      res.status(400).json({ success: false, error: 'cityCode is required' });
+      return;
+    }
+    const cacheKey = `current:${cityCode}`;
+    const cached = cache.getByKey(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached, cachedAt: new Date().toISOString() });
+      return;
+    }
+    const data = await fetchCurrentWeather(cityCode);
+    cache.setByKey(cacheKey, data, config.cacheTtl.current);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

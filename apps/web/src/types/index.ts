@@ -17,6 +17,14 @@ export interface CitySearchResult {
   lon: number;
 }
 
+export interface SavedCity {
+  city: string;
+  cityCode: string;
+  province: string;
+  lat: number;
+  lon: number;
+}
+
 export interface CurrentWeather {
   temperature: number;
   feelsLike: number;

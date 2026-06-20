@@ -82,6 +82,14 @@ export interface CitySearchResult {
   lon: number;
 }
 
+export interface SavedCity {
+  city: string;
+  cityCode: string;
+  province: string;
+  lat: number;
+  lon: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

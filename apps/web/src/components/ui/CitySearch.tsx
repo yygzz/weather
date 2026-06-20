@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, MapPin } from 'lucide-react';
 import { useWeatherStore } from '@/stores/weatherStore';
+import { useSavedCities } from '@/hooks/useSavedCities';
 import { CITIES, type CityItem } from '@/data/cities';
 
 export function CitySearch() {
@@ -11,6 +12,8 @@ export function CitySearch() {
   const setCoordinates = useWeatherStore((s) => s.setCoordinates);
   const setLocation = useWeatherStore((s) => s.setLocation);
   const currentCity = useWeatherStore((s) => s.location?.city);
+
+  const { addCity, removeCity, isSaved } = useSavedCities();
 
   const results = useMemo(() => {
     const trimmed = query.trim();
@@ -66,16 +69,38 @@ export function CitySearch() {
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-auto rounded-2xl border border-white/20 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-xl">
           {results.length > 0 ? (
-            results.map((city) => (
-              <button
-                key={city.cityCode}
-                onClick={() => handleSelect(city)}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-white transition hover:bg-white/15"
-              >
-                <span className="font-medium">{city.city}</span>
-                <span className="text-white/50">{city.province}</span>
-              </button>
-            ))
+            results.map((city) => {
+              const saved = isSaved(city.cityCode);
+              return (
+                <button
+                  key={city.cityCode}
+                  onClick={() => handleSelect(city)}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-white transition hover:bg-white/15"
+                >
+                  <span className="font-medium">{city.city}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-white/50">{city.province}</span>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (saved) {
+                          removeCity(city.cityCode);
+                        } else {
+                          addCity(city);
+                        }
+                      }}
+                      className={`rounded-full px-2 py-0.5 text-xs transition ${
+                        saved
+                          ? 'bg-white/20 text-white/80'
+                          : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                      }`}
+                    >
+                      {saved ? '已收藏' : '+ 收藏'}
+                    </span>
+                  </span>
+                </button>
+              );
+            })
           ) : (
             <div className="px-3 py-2 text-sm text-white/50">未找到相关城市</div>
           )}
