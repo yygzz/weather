@@ -46,7 +46,7 @@
 - [x] Task 9: 重新验证
   - [x] SubTask 9.1: 后端 `npx tsc --noEmit` 通过
   - [x] SubTask 9.2: 后端 `npm test` 全部通过
-  - [ ] SubTask 9.3: 真实环境验证空气质量、生活指数、预警接口（`QWEATHER_KEY` 已配置，但 QWeather 接口返回 403 Invalid Host，空气质量与生活指数实际为 fallback，预警返回空数组；需在控制台确认该 Key 的 API Host 或更换有效 Key 后重新验证）
+  - [ ] SubTask 9.3: 真实环境验证空气质量、生活指数、预警接口（已更换新的 `QWEATHER_KEY`，QWeather 接口仍返回 403 Invalid Host；空气质量与生活指数实际为 fallback，预警返回空数组；需前往 QWeather 控制台绑定当前 API Host `devapi.qweather.com` 或更换已授权 Host 的有效 Key 后重新验证）
 
 # Task Dependencies
 - Task 2 依赖 无
